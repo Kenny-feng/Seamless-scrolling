@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>轮播滚动1</title>
+    <style>
+        * {margin:0;padding:0}
+        #div1 {width:712px;height:108px;margin:300px auto 0;position:relative;background:red;
+        overflow:hidden}
+        #div1 ul{position:absolute;left:0;top:0;}
+        #div1 ul li{float:left;width:178px;height:108px;list-style:none;}
+    </style>
+    <script>
+        window.onload=function (){
+            var oDiv1=document.getElementById('div1');  // 图片总容器
+            var aDiv2=document.getElementById('direction');  // 方向总容器
+            var oUl=oDiv1.getElementsByTagName('ul')[0];
+            var aLi=oUl.getElementsByTagName('li');  // 所有li
+            var aA=aDiv2.getElementsByTagName('a');  // 所有a标签
+            var speed=2;
+            var timer;  // lunBo函数一开始就用到，所以必须先声明
+            oUl.innerHTML+=oUl.innerHTML;
+            oUl.style.width=aLi[0].offsetWidth*aLi.length+'px';
+            function move(){
+                    if(oUl.offsetLeft<-oUl.offsetWidth/2){
+                        oUl.style.left='0';
+                    }
+                    if(oUl.offsetLeft>0){
+                        oUl.style.left=-oUl.offsetWidth/2+'px';
+                    }
+                    oUl.style.left=oUl.offsetLeft+speed+'px';
+            }
+
+            function lunBo(){  
+                clearInterval(timer);
+
+                timer=setInterval(function()
+                {
+                    move();
+
+                    /* 
+                    （1）每当有一张图片向左离开div时，就暂停一下，1000毫秒后执行一次setTimeout函数中的lunBo函数
+                    （2）判断图片是否移出：左对左偏移量为图片宽度的整数倍。一张图片width=178px，则移出一张的offsetLeft为178*1=178，两张为178*2=356 ...最后根据方向添加正负号。由于第4张（-712）和下一次的第1张（0）衔接，两者重合，即-888和0一样，让其中一个不暂停，否则会暂停两次。即-534、-356、-178、0（或-712）
+                    */
+                   if((oUl.offsetLeft)%(aLi[0].offsetWidth)==0&&oUl.offsetLeft!=-712&&speed==2)
+                    // 或 if((oUl.offsetLeft==-534||oUl.offsetLeft==-356||oUl.offsetLeft==-178)&&speed==2&&oUl.offsetLeft!=-712)
+                    {
+                        clearInterval(timer);
+                        setTimeout( lunBo,1000);  // 定时器括号中调用的函数不用“()”号
+                    }
+
+
+                    // 每当有一张图片向右离开div时，就暂停一下，1000毫秒后执行一次setTimeout函数中的lunBo函数
+                    if((oUl.offsetLeft)%(aLi[0].offsetWidth)==0&&oUl.offsetLeft!=0&&speed==-2)
+                    // 或 if((oUl.offsetLeft==-534||oUl.offsetLeft==-356||oUl.offsetLeft==-178)&&speed==-2&&oUl.offsetLeft!=0)
+                    {
+                        clearInterval(timer);
+                        setTimeout( lunBo,1000);
+                    }
+                },10);
+            };
+            
+
+            lunBo();  // 调用函数
+            oDiv1.onmouseover=function (){clearInterval(timer)};
+            oDiv1.onmouseout=function (){lunBo()};  // 此处不能调用move()，否则移出后还是暂停，因为还没清除移出时的timer，而lunBo()一开始就清除timer，而且还包含move()，所以调用的是lunBo()
+            aA[0].onmouseover=function (){speed=-2};
+            aA[1].onmouseover=function (){speed=2};
+        };
+    </script>
+</head>
+<body>
+<div id="direction">
+<a href="javascript:;">向左</a>
+<a href="javascript:;">向右</a>
+</div>
+
+<div id="div1">
+    <ul>
+        <li><a href="javascript:"><img src="images/图片1.jpg" alt="1" /></a></li>
+        <li><a href="javascript:"><img src="images/图片2.jpg" alt="2" /></a></li>
+        <li><a href="javascript:"><img src="images/图片3.jpg" alt="3" /></a></li>
+        <li><a href="javascript:"><img src="images/图片4.jpg" alt="4" /></a></li>
+</div>
+
+</body>
+</html>

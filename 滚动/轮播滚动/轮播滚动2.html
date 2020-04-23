@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>轮播滚动2</title>
+<style>
+/* reset */
+body, div, ul, li {
+  margin:0;
+  padding:0;
+  list-style: none;
+  border: 0;
+}
+body{
+  background: #fff;
+}
+/* wrap */
+#box {
+  position: relative;
+  width: 502px;
+  height: 202px;
+  margin: 10px auto;
+  border: 8px solid #002232;
+
+  overflow: hidden;
+}
+/* image */
+#box .list-image {
+  position: absolute;
+  width: 500px;
+  height: 200px;
+}
+#box .list-image li {
+  border: 1px solid purple;
+  width: 500px;
+  height: 200px;
+  /*这里也设置宽高，解决的是默认行间距问题*/
+}
+#box .list-image li img {
+  width: 500px;
+  height: 200px;
+}
+/* number */
+#box .list-number {
+  position: absolute;
+  right: 0;
+  bottom: 5px;
+}
+#box .list-number li {
+  float: left;
+  margin-right: 10px;
+  width: 20px;
+  height: 20px;
+  font: 12px / 20px Arial;
+  border-radius: 10px;
+  background-color: #f60;
+  text-align: center;
+  color: #fff;
+  opacity: 0.7;
+  filter: alpha(opacity = 70);
+  cursor: pointer;
+}
+#box .list-number li.current {
+  opacity: 1;
+  filter: alpha(opacity=100);
+}
+</style>
+</head>
+<body>
+  <div id="box">
+    <ul class="list-image">
+      <li><img src="images/图片1.jpg" alt="1" /></li>
+      <li><img src="images/图片2.jpg" alt="2" /></li>
+      <li><img src="images/图片3.jpg" alt="3" /></li>
+      <li><img src="images/图片4.jpg" alt="4" /></li>
+    </ul>
+  </div>
+</body>
+<script>
+  const oBox = document.getElementById("box");
+  const oUl = oBox.getElementsByTagName("ul")[0];
+  const oImage = oUl.getElementsByTagName("li");
+  // 根据图片 li 的个数生成同样数量的 按钮 li
+  let eleArr = [];
+  for (let i = 0; i < oImage.length; i++) {
+    eleArr.push("<li>" + (i + 1) + "</li>");  // push：向数组的末尾添加一个或多个元素，并返回新的长度
+  }
+  // eleArr=["<li>1</li>","<li>2</li>","<li>3</li>"...]
+
+  // 创建节点元素并且添加节点元素至 html 里面
+  var oEle = document.createElement("ul");  // <ul></ul>
+  oEle.className = "list-number";  // <ul class="list-number"></ul>
+
+  /* js中array.join(str)，python中str.join(list)，功能一样，字符串和列表的顺序不一样而已，都是将列表中的元素以指定的字符连接生成一个新的字符串。此句是将以空格将列表中的元素进行连接。即：
+  "<li>1</li><li>2</li><li>3</li>"
+  等价于：
+   <li>1</li>
+   <li>2</li>
+   <li>3</li>
+  */
+  oEle.innerHTML = eleArr.join("");  
+
+  /* oEle为：
+  <ul class="list-number">
+      <li>1</li>
+      <li>2</li>
+      <li>3</li>
+      <li>4</li>
+      <li>5</li>
+  </ul>
+
+  */
+
+  // 在div中添加直接子节点，这个ul和原先的ul并列
+  oBox.appendChild(oEle);
+  // 手动点击，触发轮播的触发函数
+  const oNumber = oEle.getElementsByTagName("li");
+  for (var i = 0; i < oNumber.length; i++) {
+    // 给每个新添的li添加指自定义属性index，作为索引。或用jq：oNumber.setAttribute("index", i)
+    oNumber[i].index = i;
+    oNumber[i].onmouseover = function () {  //给每个新添的li添加鼠标移入事件，并将当前的li的索引传进Show函数
+      Show(this.index);
+    }
+  }
+  /* 在js中，还可以用数组形式的for循环，类似python，效果一样：
+  for (var i in oNumber[i]){}
+  */
+
+  // 轮播触发，并且内部调用移动效果函数
+  function Show(index) {
+    for (let i = 0; i < oNumber.length; i++) {
+      // 不管新添的这些li原先是否有class，都全部清空，或用jq：oNumber[i].removeAttribute("class");
+      oNumber[i].className = "";
+    }
+
+    // 由于this表示当前鼠标所处的那个元素，所以也可用：this.className = "current";
+    oNumber[index].className = "current";  // 给当前鼠标所在那个li添加class="current"
+    Move(index);
+  }
+  // 移动效果函数
+  let timer = null;  // 必须先声明，否则下面的clearInterval(timer)中的参数就未定义
+  function Move(index) {
+    clearInterval(timer);
+    // target = -index * imgWidth
+    let target = -index * 202;
+    timer = setInterval(function() {
+      // 速度=（目标位置 - 当前位置）/时间。如：从第1张移到第3张，如果想瞬间到达，则不需要分母（分母越大，速度越慢）
+      let speed = (target - oUl.offsetTop) / 10;
+      // 如果速度大于0，则向上取整，否则向下取整
+      speed = speed > 0 ? Math.ceil(speed) : Math.floor(speed);
+      /* 没有到达目标，则不停止。
+      如：从第1张移到第3张，途径第2张时，不停止，而是直到第3张才停止
+         clearInterval(timer)表示停止，oUl.style.top = oUl.offsetTop + speed + "px";表示运动，运动方向由speed正负而定（此处的speed是此函数中定义的speed）
+      */
+      oUl.offsetTop === target ? clearInterval(timer) : oUl.style.top = oUl.offsetTop + speed + "px";
+      
+    }, 30);
+  }
+
+  // 添加自动轮播函数
+  let nowIndex = 0;
+  let autoTimer = null;
+  oBox.onmouseout = function() { auto(); }
+  oBox.onmouseover = function() { clearInterval(autoTimer); }
+  function auto() {
+    autoTimer = setInterval(() => {
+      if (nowIndex < oImage.length - 1) {
+        nowIndex ++;
+      } else {
+        nowIndex = 0;
+      }
+      Show(nowIndex);
+    }, 2000);
+  }
+  auto();
+  // 起始的时候默认开始
+</script>
+</html>

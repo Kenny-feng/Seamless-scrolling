@@ -1,0 +1,88 @@
+<!--
+思路：
+1.设定div宽度，且position:relative;
+2.设定ul为div宽度的两倍（即将4张图片变成8张），并一开始让ul左边界紧贴div左边界。且position:absolute;
+3.都是运动一半就抽回
+  向左：一直向左运动，到一半的ul离开div时（右4张图片留在div中），第一次运动消失，第二次运动出现（还是ul左边紧靠div左边），即：第一次运动还留在div中的后4张图片会被第二次的前4张图片覆盖，由于切换的速度很快，而且第一次的后4张和第二次的前4张都一样，所以看不出来。也可以理解为每次的8张一旦前4张离开div就将整个ul先右抽回，让ul的前4张置于div中开始向左运动，运动到前4张离开div，又将整个ul向右抽回，让ul的前4张置于div中
+  向右：一旦向右，第一次运动就消失，第二次运动开始（让ul右边紧贴div右边），向右运动，等4张离开div，此次运动消失，第三次运动开始（还是让ul右边紧贴div右边）。也可以理解为一旦向右，就将整个ul向左抽回，让ul的右4张置于div中开始向右运动，运动到右4张离开div，又将整个ul向左抽回，还是让ul右边紧贴div右边...
+-->
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+<style>
+* {margin:0; padding:0;}
+/* 
+对ul设置absolute，因为后面要对整体ul进行移动，从而里面的所有图片也会跟着移动
+relative定位：相对于直接父元素。所以div1相对于body
+absolute定位：相对于具有“定位属性（relative/absolute）”的父元素，所以ul相对于div1，则left为0表示ul左边界紧贴div1左边界。补充：left是左边对左边，right是右边对右边	   
+父div1：overflow:hidden溢出隐藏，因为ul是div1宽度的两倍，所以溢出的另一半会被div中遮挡
+*/
+#div1 {width:712px; height:108px; margin:100px auto; position:relative; background:red; overflow: hidden;}
+#div1 ul {position:absolute; left:0; top:0;}
+#div1 ul li {float:left; width:178px; height:108px; list-style:none;}
+</style>
+<script>
+window.onload=function ()
+{
+	//初始化：获取各标签和声明变量
+	var oDiv=document.getElementById('div1');
+	var aDiv2=document.getElementById('direction');  // 方向总容器
+	var oUl=oDiv.getElementsByTagName('ul')[0];
+	var aLi=oUl.getElementsByTagName('li');
+	var aA=aDiv2.getElementsByTagName('a');  // 所有a标签
+	var speed=-2;
+
+	// 内容赋值一份，即两份的ul
+	oUl.innerHTML+=oUl.innerHTML;
+    //内容赋值一份，则要将ul的宽度设为随所有Li的总宽度而定，否则原来的ul的宽度容不下的另一份，则另一份只能换行显示
+	oUl.style.width=aLi[0].offsetWidth*aLi.length+'px';
+	function move(){
+		// -oUl.offsetWidth/2恒为-712
+
+		// 向左需要用到此if
+		if(oUl.offsetLeft<-oUl.offsetWidth/2)
+		{
+			oUl.style.left='0';
+		}
+
+		// 向右需要用到此if
+		if(oUl.offsetLeft>0)
+		{
+			oUl.style.left=-oUl.offsetWidth/2+'px';
+		}
+
+		oUl.style.left=oUl.offsetLeft+speed+'px';
+	}
+
+    // 将计时器函数赋值给变量timer，则清除该变量就相当于清除该计时器函数
+	var timer=setInterval(move, 30);
+	// 鼠标移入时，执行匿名函数
+	oDiv.onmouseover=function () { clearInterval(timer); };
+	// 鼠标移出时，执行匿名函数，定时器要有timer，作为上一行移入时的timer
+	oDiv.onmouseout=function ()	{ timer=setInterval(move, 30); };
+	
+	// 向右：speed为-2 向右：speed为+2
+	aA[0].onclick=function () { speed=-2; };
+	aA[1].onclick=function () { speed=2; };
+};
+</script>
+</head>
+
+<body>
+<div id="direction">
+<a href="javascript:;">向左</a>
+<a href="javascript:;">向右</a>
+</div>
+
+<div id="div1">
+    <ul>
+    	<li><img src="images/图片1.jpg" /></li>
+    	<li><img src="images/图片2.jpg" /></li>
+    	<li><img src="images/图片3.jpg" /></li>
+    	<li><img src="images/图片4.jpg" /></li>
+    </ul>
+</div>
+</body>
+</html>
